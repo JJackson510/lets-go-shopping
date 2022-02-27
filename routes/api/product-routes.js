@@ -8,12 +8,62 @@ const sequelize =require('../../config/connection');
 router.get('/', (req, res) => {
   // find all products
   // be sure to include its associated Category and Tag data
+  Product.findAll(
+    {
+    model: Product,
+    attributes: ['id', 'product_name', 'price', 'stock'],
+    },{
+    include: [{
+      model: Category,
+      attributes: ['id', 'tag_name'],
+      through:productTag
+    }]
+  }
+  )
+  .then(data => {
+    if(!data) {
+      res.status(404).json({message: 'Product not found'});
+      return;
+    }
+    res.json(data);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json(err);
+  });
 });
 
 // get one product
 router.get('/:id', (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
+  Product.findOne(
+    {
+      model: Product,
+      attributes: ['id', 'product_name','price', 'stock'],
+      where: {
+        id: req.params.id
+      },
+      include: [{
+        model: Category,
+        attributes: ['id', 'product_name'],
+      },{
+        model: Tag,
+        attributes: ['id', 'tag_name']
+      }]
+    }
+  )
+  .then(data => {
+    if(!data){
+      res.status(404).json({message: `${req.params.id} can not be found`});
+      return;
+    }
+    res.json(data);
+  })
+  .catch(err => {
+    console.error(err);
+    res.status(500).json(err);
+  });
 });
 
 // create new product
@@ -92,6 +142,7 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   // delete one product by its `id` value
+  
 });
 
 module.exports = router;
